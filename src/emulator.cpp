@@ -45,7 +45,9 @@ void Emulator::Run() {
         SDL_Delay(1000/60); // 16.67 ms per frame (60hz)
         // Update window
         graphics.PollEvents();
-        graphics.Update();
+        //graphics.Update();
+        // Draw to screen
+        Draw();
         chip8.Tick();
     }
 }

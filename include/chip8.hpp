@@ -4,6 +4,7 @@
 #include "memory.hpp"
 #include "cpu.hpp"
 #include "display.hpp"
+#include <iostream>
 
 class Chip8 {
     public:
