@@ -49,15 +49,45 @@ bool Graphics::Init() {
     return true;
 }
 
+/**
+ * Clears the screen.
+*/
 void Graphics::Clear() {
     SDL_SetRenderDrawColor(renderer, white >> 24, (white >> 16) & 0xFF, (white >> 8) & 0xFF, white & 0xFF);
     SDL_RenderClear(renderer);
 }
 
+/**
+ * Updates the screen.
+*/
 void Graphics::Update() {
     SDL_RenderPresent(renderer);
 }
 
+/**
+ * Sets the pixel at the specified coordinates to the specified value.
+ * @param x the x coordinate of the pixel.
+ * @param y the y coordinate of the pixel.
+ * @param on true if the pixel should be on, false otherwise.
+*/
+void Graphics::SetPixel(int x, int y, bool on) {
+    pixels[x][y] = on;
+    SDL_Rect rect;
+    rect.x = x*SCREEN_SCALE;
+    rect.y = y*SCREEN_SCALE;
+    rect.w = SCREEN_SCALE;
+    rect.h = SCREEN_SCALE;
+    if (on) {
+        SDL_SetRenderDrawColor(renderer, white >> 24, (white >> 16) & 0xFF, (white >> 8) & 0xFF, white & 0xFF);
+    } else {
+        SDL_SetRenderDrawColor(renderer, black >> 24, (black >> 16) & 0xFF, (black >> 8) & 0xFF, black & 0xFF);
+    }
+    SDL_RenderFillRect(renderer, &rect);
+}
+
+/**
+ * Polls for events and handles them.
+*/
 void Graphics::PollEvents() {
     SDL_Event event;
     while(SDL_PollEvent(&event)) {
@@ -75,6 +105,9 @@ void Graphics::PollEvents() {
     }
 }
 
+/**
+ * Returns true if the emulator is running, false otherwise.
+*/
 bool Graphics::isRunning() {
     return running;
 }

@@ -1,20 +1,19 @@
-#include <iostream>
-#include "graphics.hpp"
-#include "emulator.hpp"
-#include "SDL.h"
+#include "chip8.hpp"
 
-int main(int argc, char* argv[]) {
-    (void)argc;
-    (void)argv;
-
-    Emulator emulator = Emulator();
-
-    if(!emulator.Init()) {
-        return -1;
-    }
-
-    emulator.Run();
-
-    return 0;
+Chip8::Chip8() {
+    memory = Memory();
+    cpu = CPU();
+    opcode = 0;
 }
 
+void Chip8::LoadProgram(uint8_t* buffer, int size) {
+    memory.LoadProgram(buffer, size);
+}
+
+void Chip8::Tick() {
+    opcode = memory.FetchOpcode(cpu.pc);
+}
+
+bool Chip8::GetPixel(uint16_t index) {
+    return display.GetPixel(index);
+} 
