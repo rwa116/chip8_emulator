@@ -4,13 +4,22 @@ Chip8::Chip8() {
     memory = Memory();
     cpu = CPU();
     display = Display();
+    input = Input();
     opcode = 0;
 }
 
+/**
+ * Loads a program into memory.
+ * @param buffer The buffer containing the program to load.
+ * @param size The size of the program to load.
+ */
 void Chip8::LoadProgram(uint8_t* buffer, int size) {
     memory.LoadProgram(buffer, size);
 }
 
+/**
+ * Decrements the delay and sound timers.
+*/
 void Chip8::TimerTick() {
     if (cpu.delayTimer > 0) {
         cpu.delayTimer--;
@@ -23,11 +32,132 @@ void Chip8::TimerTick() {
     }
 }
 
+/**
+ * Sends input to the emulator.
+ * @param code The keycode of the key pressed.
+ * @param state The state of the key (pressed or released).
+ */
+void Chip8::SendInput(SDL_Keycode code, bool state) {
+    switch(code) {
+        case SDLK_1:
+            input.SetKeyState(0x1, state);
+            break;
+        case SDLK_2:
+            input.SetKeyState(0x2, state);
+            break;
+        case SDLK_3:
+            input.SetKeyState(0x3, state);
+            break;
+        case SDLK_4:
+            input.SetKeyState(0xC, state);
+            break;
+        case SDLK_q:
+            input.SetKeyState(0x4, state);
+            break;
+        case SDLK_w:
+            input.SetKeyState(0x5, state);
+            break;
+        case SDLK_e:
+            input.SetKeyState(0x6, state);
+            break;
+        case SDLK_r:
+            input.SetKeyState(0xD, state);
+            break;
+        case SDLK_a:
+            input.SetKeyState(0x7, state);
+            break;
+        case SDLK_s:
+            input.SetKeyState(0x8, state);
+            break;
+        case SDLK_d:
+            input.SetKeyState(0x9, state);
+            break;
+        case SDLK_f:
+            input.SetKeyState(0xE, state);
+            break;
+        case SDLK_z:
+            input.SetKeyState(0xA, state);
+            break;
+        case SDLK_x:
+            input.SetKeyState(0x0, state);
+            break;
+        case SDLK_c:
+            input.SetKeyState(0xB, state);
+            break;
+        case SDLK_v:
+            input.SetKeyState(0xF, state);
+            break;
+    }
+}
+
+/**
+ * Recieves input from the emulator.
+ * @param code The keycode of the key input to receive.
+*/
+bool Chip8::RecieveInput(SDL_Keycode code) {
+    switch(code) {
+        case SDLK_1:
+            return input.GetKeyState(0x1);
+            break;
+        case SDLK_2:
+            return input.GetKeyState(0x2);
+            break;
+        case SDLK_3:
+            return input.GetKeyState(0x3);
+            break;
+        case SDLK_4:
+            return input.GetKeyState(0xC);
+            break;
+        case SDLK_q:
+            return input.GetKeyState(0x4);
+            break;
+        case SDLK_w:
+            return input.GetKeyState(0x5);
+            break;
+        case SDLK_e:
+            return input.GetKeyState(0x6);
+            break;
+        case SDLK_r:
+            return input.GetKeyState(0xD);
+            break;
+        case SDLK_a:
+            return input.GetKeyState(0x7);
+            break;
+        case SDLK_s:
+            return input.GetKeyState(0x8);
+            break;
+        case SDLK_d:
+            return input.GetKeyState(0x9);
+            break;
+        case SDLK_f:
+            return input.GetKeyState(0xE);
+            break;
+        case SDLK_z:
+            return input.GetKeyState(0xA);
+            break;
+        case SDLK_x:
+            return input.GetKeyState(0x0);
+            break;
+        case SDLK_c:
+            return input.GetKeyState(0xB);
+            break;
+        case SDLK_v:
+            return input.GetKeyState(0xF);
+            break;
+        default:
+            return false;
+            break;
+    }
+}
+
+/**
+ * Executes one cycle of the emulator.
+ */
 void Chip8::Tick() {
     opcode = memory.FetchOpcode(cpu.pc);
 
     // Decode opcode
-    std::cout << "Opcode: " << opcode << ", PC = " << cpu.pc << std::endl;
+    //std::cout << "Opcode: " << opcode << ", PC = " << cpu.pc << std::endl;
     switch(opcode & 0xF000) {
         case 0x0000:
             switch(opcode & 0x000F) {
@@ -174,46 +304,75 @@ void Chip8::Tick() {
                 break;
             }
         case 0xE000:
-            std::cout << "Key press not implemented yet" << std::endl;
-            cpu.pc += 2;
+            switch (opcode & 0x00FF) {
+            case 0x009E: // 0xEX9E: Skips the next instruction if the key stored in VX is pressed
+                if (input.GetKeyState(cpu.registers[(opcode & 0x0F00) >> 8])) {
+                    cpu.pc += 4;
+                } else {
+                    cpu.pc += 2;
+                }
+                break;
+            case 0x00A1: // 0xEXA1: Skips the next instruction if the key stored in VX isn't pressed
+                if (!input.GetKeyState(cpu.registers[(opcode & 0x0F00) >> 8])) {
+                    cpu.pc += 4;
+                } else {
+                    cpu.pc += 2;
+                }
+                break;
+            default:
+                cpu.pc += 2;
+                break;
+            }
             break;
         case 0xF000:
             switch(opcode & 0x00FF) {
                 case 0x0007: // 0xFX07: Set VX equal to the value of the delay timer
                     cpu.registers[(opcode & 0x0F00) >> 8] = cpu.delayTimer;
+                    cpu.pc += 2;
                     break;
                 case 0x000A: // 0xFX0A: Wait for a key press, store the value of the key in VX
-                    std::cout << "Key press not implemented yet" << std::endl;
+                    for (int i = 0; i < 16; i++) {
+                        if (input.GetKeyState(i)) {
+                            cpu.registers[(opcode & 0x0F00) >> 8] = i;
+                            cpu.pc += 2;
+                        }
+                    }
                     break;
                 case 0x0015: // 0xFX15: Set the delay timer equal to VX
                     cpu.delayTimer = cpu.registers[(opcode & 0x0F00) >> 8];
+                    cpu.pc += 2;
                     break;
                 case 0x0018: // 0xFX18: Set the sound timer equal to VX
                     cpu.soundTimer = cpu.registers[(opcode & 0x0F00) >> 8];
+                    cpu.pc += 2;
                     break;
                 case 0x001E: // 0xFX1E: Set I equal to I plus VX
                     cpu.I += cpu.registers[(opcode & 0x0F00) >> 8];
+                    cpu.pc += 2;
                     break;
                 case 0x0029: // 0xFX29: Set I equal to the location of the sprite for the character in VX
-                    std::cout << "Sprite location not implemented yet" << std::endl;
+                    cpu.I = cpu.registers[(opcode & 0x0F00) >> 8] * 0x5;
+                    cpu.pc += 2;
                     break;
                 case 0x0033: // 0xFX33: Store the binary-coded decimal equivalent of VX at the addresses I, I plus 1, and I plus 2
                     memory.SetMem(cpu.I, cpu.registers[(opcode & 0x0F00) >> 8] / 100);
                     memory.SetMem(cpu.I + 1, (cpu.registers[(opcode & 0x0F00) >> 8] / 10) % 10);
                     memory.SetMem(cpu.I + 2, (cpu.registers[(opcode & 0x0F00) >> 8] % 100) % 10);
+                    cpu.pc += 2;
                     break;
                 case 0x0055: // 0xFX55: Store V0 to VX in memory starting at address I
                     for (int i = 0; i <= ((opcode & 0x0F00) >> 8); i++) {
                         memory.SetMem(cpu.I + i, cpu.registers[i]);
                     }
+                    cpu.pc += 2;
                     break;
                 case 0x0065: // 0xFX65: Fill V0 to VX with values from memory starting at address I
                     for (int i = 0; i <= ((opcode & 0x0F00) >> 8); i++) {
                         cpu.registers[i] = memory.GetMem(cpu.I + i);
                     }
+                    cpu.pc += 2;
                     break;
             }
-            cpu.pc += 2;
             break;
         default:
             std::cout << "Unknown opcode: 0x" << opcode << std::endl;
@@ -221,6 +380,10 @@ void Chip8::Tick() {
     }
 }
 
+/**
+ * Gets the state of a pixel in the display.
+ * @param index The index of the pixel to get the state of
+ */
 bool Chip8::GetPixel(uint16_t index) {
     return display.GetPixel(index);
 } 

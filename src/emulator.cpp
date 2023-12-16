@@ -9,6 +9,7 @@
 Emulator::Emulator() {
     graphics = Graphics();
     chip8 = Chip8();
+    running = false;
 }
 
 Emulator::~Emulator() {
@@ -36,6 +37,7 @@ bool Emulator::Init(char argc, char* argv[]) {
     }
 
     graphics.Clear();
+    running = true;
     return true;
 }
 
@@ -43,15 +45,17 @@ bool Emulator::Init(char argc, char* argv[]) {
  * Main run loop for the emulator.
 */
 void Emulator::Run() {
-    while(isRunning()) {
+    while(running) {
         SDL_Delay(1000/60); // 16.67 ms per frame (60hz)
         // Update window
-        graphics.PollEvents();
+        PollEvents();
         // Draw to screen
         Draw();
         graphics.Update();
         chip8.TimerTick();
-        chip8.Tick();
+        for(uint8_t i=0; i<10; i++) {
+            chip8.Tick(); // 10 cpu cycles per frame
+        }
         if(STEP_MODE) {
             std::cout << "Press enter to continue..." << std::endl;
             std::cin.get();
@@ -73,6 +77,24 @@ void Emulator::Draw() {
     }
 }
 
-bool Emulator::isRunning() {
-    return graphics.isRunning();
+/**
+ * Polls for events and handles them.
+*/
+void Emulator::PollEvents() {
+    SDL_Event event;
+    while(SDL_PollEvent(&event)) {
+        switch(event.type) {
+            case SDL_QUIT:
+                running = false;
+                break;
+            case SDL_KEYDOWN:
+                chip8.SendInput(event.key.keysym.sym, true);
+                break;
+            case SDL_KEYUP:
+                chip8.SendInput(event.key.keysym.sym, false);
+                break;
+            default:
+                break;
+        }
+    }
 }

@@ -11,10 +11,12 @@ class Emulator {
         bool Init(char argc, char* argv[]);
         void Run();
         void Draw();
+        void PollEvents();
     private:
         bool isRunning();
         Chip8 chip8;
         Graphics graphics;
+        bool running;
 };
 
 #endif // EMULATOR_H

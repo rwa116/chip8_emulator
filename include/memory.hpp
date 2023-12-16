@@ -2,6 +2,8 @@
 #define MEMORY_H
 
 #include <cstdint>
+#include <algorithm>
+#include <iterator>
 
 #define PROGRAM_START 0x200
 

@@ -17,8 +17,6 @@ class Graphics {
         void Update();
         void SetPixel(int x, int y, bool value);
         bool GetPixel(int x, int y);
-        void PollEvents();
-        bool isRunning();
     private:
         SDL_Window* window;
         SDL_Renderer* renderer;
