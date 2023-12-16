@@ -8,6 +8,7 @@
 
 Emulator::Emulator() {
     graphics = Graphics();
+    audio = Audio();
     chip8 = Chip8();
     running = false;
 }
@@ -36,6 +37,10 @@ bool Emulator::Init(char argc, char* argv[]) {
         return false;
     }
 
+    if(!audio.Init()) {
+        return false;
+    }
+
     graphics.Clear();
     running = true;
     return true;
@@ -49,13 +54,23 @@ void Emulator::Run() {
         SDL_Delay(1000/60); // 16.67 ms per frame (60hz)
         // Update window
         PollEvents();
-        // Draw to screen
-        Draw();
-        graphics.Update();
-        chip8.TimerTick();
+        // Run cpu cycles
         for(uint8_t i=0; i<10; i++) {
             chip8.Tick(); // 10 cpu cycles per frame
         }
+        // Draw to screen
+        Draw();
+        graphics.Update();
+
+        // // Update timers
+        bool playSound = chip8.TimerTick();
+
+        if(playSound) {
+            audio.Play();
+        } else {
+            audio.Stop();
+        }
+
         if(STEP_MODE) {
             std::cout << "Press enter to continue..." << std::endl;
             std::cin.get();

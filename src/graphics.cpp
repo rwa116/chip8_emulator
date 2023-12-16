@@ -27,7 +27,7 @@ Graphics::~Graphics() {
  * @return true if successful, false otherwise.
 */
 bool Graphics::Init() {
-    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_TIMER) != 0) {
+    if(SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return false;
     }

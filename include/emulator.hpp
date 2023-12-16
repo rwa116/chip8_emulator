@@ -2,6 +2,7 @@
 #define EMULATOR_H
 
 #include "graphics.hpp"
+#include "audio.hpp"
 #include "chip8.hpp"
 
 class Emulator {
@@ -16,6 +17,7 @@ class Emulator {
         bool isRunning();
         Chip8 chip8;
         Graphics graphics;
+        Audio audio;
         bool running;
 };
 

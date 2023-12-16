@@ -12,7 +12,7 @@ class Chip8 {
     public:
         Chip8();
         void LoadProgram(uint8_t* buffer, int size);
-        void TimerTick();
+        bool TimerTick();
         void Tick();
         bool GetPixel(uint16_t index);
         bool RecieveInput(SDL_Keycode code);

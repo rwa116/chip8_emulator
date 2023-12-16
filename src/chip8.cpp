@@ -20,16 +20,15 @@ void Chip8::LoadProgram(uint8_t* buffer, int size) {
 /**
  * Decrements the delay and sound timers.
 */
-void Chip8::TimerTick() {
+bool Chip8::TimerTick() {
     if (cpu.delayTimer > 0) {
         cpu.delayTimer--;
     }
     if (cpu.soundTimer > 0) {
-        if (cpu.soundTimer == 1) {
-            std::cout << "BEEP!" << std::endl; //TODO: Implement sound
-        }
         cpu.soundTimer--;
+        return true;
     }
+    return false;
 }
 
 /**
@@ -157,7 +156,7 @@ void Chip8::Tick() {
     opcode = memory.FetchOpcode(cpu.pc);
 
     // Decode opcode
-    //std::cout << "Opcode: " << opcode << ", PC = " << cpu.pc << std::endl;
+    std::cout << "Opcode: " << opcode << ", PC = " << cpu.pc << std::endl;
     switch(opcode & 0xF000) {
         case 0x0000:
             switch(opcode & 0x000F) {
