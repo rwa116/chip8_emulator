@@ -61,6 +61,67 @@ void Chip8::Tick() {
                 cpu.pc += 2;
             }
             break;
+        case 0x6000: // 0x6XNN: Set VX equal to NN
+            cpu.registers[(opcode & 0x0F00) >> 8] = opcode & 0x00FF;
+            cpu.pc += 2;
+            break;
+        case 0x7000: // 0x7XNN: Set VX equal to VX plus NN
+            cpu.registers[(opcode & 0x0F00) >> 8] += opcode & 0x00FF;
+            cpu.pc += 2;
+            break;
+        case 0x8000:
+            switch(opcode & 0x000F) {
+                case 0x0000: // 0x8XY0: Set VX equal to VY
+                    cpu.registers[(opcode & 0x0F00) >> 8] = cpu.registers[(opcode & 0x00F0) >> 4]; 
+                    break;
+                case 0x0001: // 0x8XY1: Set VX equal to VX OR VY
+                    cpu.registers[(opcode & 0x0F00) >> 8] |= cpu.registers[(opcode & 0x00F0) >> 4]; 
+                    break;
+                case 0x0002: // 0x8XY2: Set VX equal to VX AND VY
+                    cpu.registers[(opcode & 0x0F00) >> 8] &= cpu.registers[(opcode & 0x00F0) >> 4]; 
+                    break;
+                case 0x0003: // 0x8XY3: Set VX equal to VX XOR VY
+                    cpu.registers[(opcode & 0x0F00) >> 8] ^= cpu.registers[(opcode & 0x00F0) >> 4]; 
+                    break;
+                case 0x0004: // 0x8XY4: Set VX equal to VX plus VY, and set VF to carry
+                    if (cpu.registers[(opcode & 0x0F00) >> 8] + cpu.registers[(opcode & 0x00F0) >> 4] > 255) {
+                        cpu.registers[0xF] = 1;
+                    } else {
+                        cpu.registers[0xF] = 0;
+                    }
+                    cpu.registers[(opcode & 0x0F00) >> 8] += cpu.registers[(opcode & 0x00F0) >> 4];
+                    break;
+                case 0x0005: // 0x8XY4: Set VX equal to VX minux VY, and set VF to NOT borrow
+                    if (cpu.registers[(opcode & 0x0F00) >> 8] > cpu.registers[(opcode & 0x00F0) >> 4] ) {
+                        cpu.registers[0xF] = 1;
+                    } else {
+                        cpu.registers[0xF] = 0;
+                    }
+                    cpu.registers[(opcode & 0x0F00) >> 8] -= cpu.registers[(opcode & 0x00F0) >> 4];
+                    break;
+                case 0x0006: //0x8XY5: Set VX equal to VX divided by 2, set VF to LSB of VX
+                    cpu.registers[0xF] = cpu.registers[(opcode & 0x0F00) >> 8] & 0b1;
+                    cpu.registers[(opcode & 0x0F00) >> 8] /= 2;
+                    break;
+                case 0x0007: //0x8XY6: Set VX equal to VY minus VX, and set VF to NOT borrow
+                    if (cpu.registers[(opcode & 0x00F0) >> 4] > cpu.registers[(opcode & 0x0F00) >> 8] ) {
+                        cpu.registers[0xF] = 1;
+                    } else {
+                        cpu.registers[0xF] = 0;
+                    }
+                    cpu.registers[(opcode & 0x0F00) >> 8] = cpu.registers[(opcode & 0x00F0) >> 4] - cpu.registers[(opcode & 0x0F00) >> 8];
+                    break;
+                case 0x000E: //0x8XY5: Set VX equal to VX multipied by 2, set VF to MSB of VX
+                    cpu.registers[0xF] = cpu.registers[(opcode & 0x0F00) >> 8] & 0b10000000;
+                    cpu.registers[(opcode & 0x0F00) >> 8] *= 2;
+                    break;
+                default:
+                    std::cout << "Unknown opcode: 0x" << opcode << std::endl;
+                    break;
+                    
+                cpu.pc += 2;
+                break;
+            }
         default:
             std::cout << "Unknown opcode: 0x" << opcode << std::endl;
             break;
