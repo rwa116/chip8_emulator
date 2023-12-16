@@ -8,6 +8,7 @@ class Display {
         Display();
         void Clear();
         bool GetPixel(uint16_t index);
+        void SetPixel(uint16_t index, bool value);
     private:
         bool display[64 * 32];
 };

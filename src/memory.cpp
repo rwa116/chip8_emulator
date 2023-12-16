@@ -44,6 +44,13 @@ uint8_t Memory::GetMem(uint16_t address) {
 }
 
 /**
+ * Sets the value at the specified address.
+*/
+void Memory::SetMem(uint16_t address, uint8_t value) {
+    memory[address] = value;
+}
+
+/**
  * Gets the sprite at the specified index.
 */
 uint8_t Memory::GetSprite(uint8_t address) {

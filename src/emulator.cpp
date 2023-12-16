@@ -4,6 +4,8 @@
 #include <sstream>
 #include <fstream>
 
+#define STEP_MODE false
+
 Emulator::Emulator() {
     graphics = Graphics();
     chip8 = Chip8();
@@ -45,10 +47,15 @@ void Emulator::Run() {
         SDL_Delay(1000/60); // 16.67 ms per frame (60hz)
         // Update window
         graphics.PollEvents();
-        //graphics.Update();
         // Draw to screen
         Draw();
+        graphics.Update();
+        chip8.TimerTick();
         chip8.Tick();
+        if(STEP_MODE) {
+            std::cout << "Press enter to continue..." << std::endl;
+            std::cin.get();
+        }
     }
 }
 

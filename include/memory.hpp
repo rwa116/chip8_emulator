@@ -10,6 +10,7 @@ class Memory {
         Memory();
         void LoadProgram(uint8_t* buffer, int size);
         uint8_t GetMem(uint16_t address);
+        void SetMem(uint16_t address, uint8_t value);
         uint8_t GetSprite(uint8_t index);
         uint16_t FetchOpcode(uint16_t pc);
     private:

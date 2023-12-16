@@ -17,6 +17,15 @@ void Display::Clear() {
 }
 
 /**
+ * Sets the pixel at the given index.
+ * @param index the index of the pixel.
+ * @param value the value to set the pixel to.
+*/
+void Display::SetPixel(uint16_t index, bool value) {
+    display[index] = value;
+}
+
+/**
  * Gets the pixel at the given index.
  * @param index the index of the pixel.
 */

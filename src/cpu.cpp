@@ -3,6 +3,7 @@
 CPU::CPU() {
     pc = 0x200;
     sp = 0;
+    I = 0;
     delayTimer = 0;
     soundTimer = 0;
     for (int i = 0; i < 16; i++) {

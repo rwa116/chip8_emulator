@@ -53,7 +53,7 @@ bool Graphics::Init() {
  * Clears the screen.
 */
 void Graphics::Clear() {
-    SDL_SetRenderDrawColor(renderer, white >> 24, (white >> 16) & 0xFF, (white >> 8) & 0xFF, white & 0xFF);
+    SDL_SetRenderDrawColor(renderer, black >> 24, (black >> 16) & 0xFF, (black >> 8) & 0xFF, black & 0xFF);
     SDL_RenderClear(renderer);
 }
 
