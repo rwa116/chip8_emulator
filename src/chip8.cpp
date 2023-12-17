@@ -150,6 +150,14 @@ bool Chip8::RecieveInput(SDL_Keycode code) {
 }
 
 /**
+ * Gets the state of a pixel in the display.
+ * @param index The index of the pixel to get the state of
+ */
+bool Chip8::GetPixelState(uint16_t index) {
+    return display.GetPixel(index);
+} 
+
+/**
  * Executes one cycle of the emulator.
  */
 void Chip8::Tick() {
@@ -166,6 +174,7 @@ void Chip8::Tick() {
                     break;
                 case 0x000E: // 0x00EE: Returns from subroutine
                     cpu.pc = cpu.stack[cpu.sp];
+                    std::cout << "PC = " << cpu.pc << std::endl;
                     cpu.sp--;
                     cpu.pc += 2;
                     break;
@@ -179,6 +188,7 @@ void Chip8::Tick() {
         case 0x2000: // 0x2NNN: Calls subroutine at NNN
             cpu.sp++;
             cpu.stack[cpu.sp] = cpu.pc;
+            std::cout << "PC = " << cpu.pc << std::endl;
             cpu.pc = opcode & 0x0FFF;
             break;
         case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN
@@ -247,6 +257,7 @@ void Chip8::Tick() {
                     break;
                     }
                 case 0x0006: { //0x8XY5: Set VX equal to VX divided by 2, set VF to LSB of VX
+                    cpu.registers[(opcode & 0x0F00) >> 8] = cpu.registers[(opcode & 0x00F0) >> 4];
                     uint8_t carry = cpu.registers[(opcode & 0x0F00) >> 8] & 0b1;
                     cpu.registers[(opcode & 0x0F00) >> 8] >>= 1;
 
@@ -261,6 +272,7 @@ void Chip8::Tick() {
                     break;
                     }
                 case 0x000E: { //0x8XY5: Set VX equal to VX multipied by 2, set VF to MSB of VX
+                    cpu.registers[(opcode & 0x0F00) >> 8] = cpu.registers[(opcode & 0x00F0) >> 4];
                     uint8_t carry = (cpu.registers[(opcode & 0x0F00) >> 8] >> 7);
                     cpu.registers[(opcode & 0x0F00) >> 8] *= 2;
 
@@ -293,20 +305,26 @@ void Chip8::Tick() {
             break;
         case 0xD000: // 0xDXYN: Draw a sprite at position VX, VY with N bytes of sprite data starting at the address stored in I
             {
-                uint8_t x = cpu.registers[(opcode & 0x0F00) >> 8];
-                uint8_t y = cpu.registers[(opcode & 0x00F0) >> 4];
+                uint8_t x = cpu.registers[(opcode & 0x0F00) >> 8] % 64;
+                uint8_t y = cpu.registers[(opcode & 0x00F0) >> 4] % 32;
                 uint8_t height = opcode & 0x000F;
                 uint8_t pixel;
 
                 cpu.registers[0xF] = 0;
-                for (int yline = 0; yline < height; yline++) {
+                for(int yline = 0; yline < height; yline++) {
+                    if((y + yline) > 32) {
+                        break;
+                    }
                     pixel = memory.GetMem(cpu.I + yline);
-                    for (int xline = 0; xline < 8; xline++) {
-                        if ((pixel & (0x80 >> xline)) != 0) {
-                            if (display.GetPixel((x + xline + ((y + yline) * 64)))) {
+                    for(int xline = 0; xline < 8; xline++) {
+                        if(x + xline > 64) {
+                            break;
+                        }
+                        if((pixel & (0x80 >> xline)) != 0) {
+                            if(display.GetPixel(((x + xline) + ((y + yline) * 64))) % (64 * 32)) {
                                 cpu.registers[0xF] = 1;
                             }
-                            display.SetPixel(x + xline + ((y + yline) * 64), !display.GetPixel(x + xline + ((y + yline) * 64)));
+                            display.SetPixel(((x + xline) + ((y + yline) * 64) % (64 * 32)), !display.GetPixel(((x + xline) + ((y + yline) * 64)) % (64 * 32)));
                         }
                     }
                 }
@@ -344,7 +362,18 @@ void Chip8::Tick() {
                     for (int i = 0; i < 16; i++) {
                         if (input.GetKeyState(i)) {
                             cpu.registers[(opcode & 0x0F00) >> 8] = i;
-                            cpu.pc += 2;
+                            input.SetKeyActive(true);
+                        }
+                    }
+                    if(input.AnyKeyActive()) {
+                        for (int i = 0; i < 16; i++) {
+                            if (input.GetKeyState(i)) {
+                                break;
+                            }
+                            if (i == 15) {
+                                input.SetKeyActive(false);
+                                cpu.pc += 2;
+                            }
                         }
                     }
                     break;
@@ -372,13 +401,15 @@ void Chip8::Tick() {
                     break;
                 case 0x0055: // 0xFX55: Store V0 to VX in memory starting at address I
                     for (int i = 0; i <= ((opcode & 0x0F00) >> 8); i++) {
-                        memory.SetMem(cpu.I + i, cpu.registers[i]);
+                        memory.SetMem(cpu.I, cpu.registers[i]);
+                        cpu.I++;
                     }
                     cpu.pc += 2;
                     break;
                 case 0x0065: // 0xFX65: Fill V0 to VX with values from memory starting at address I
                     for (int i = 0; i <= ((opcode & 0x0F00) >> 8); i++) {
-                        cpu.registers[i] = memory.GetMem(cpu.I + i);
+                        cpu.registers[i] = memory.GetMem(cpu.I);
+                        cpu.I++;
                     }
                     cpu.pc += 2;
                     break;
@@ -389,11 +420,3 @@ void Chip8::Tick() {
             break;
     }
 }
-
-/**
- * Gets the state of a pixel in the display.
- * @param index The index of the pixel to get the state of
- */
-bool Chip8::GetPixel(uint16_t index) {
-    return display.GetPixel(index);
-} 

@@ -85,7 +85,7 @@ void Emulator::Draw() {
     graphics.Clear();
     for (int i = 0; i < 64; i++) {
         for (int j = 0; j < 32; j++) {
-            if (chip8.GetPixel(i + j*64)) {
+            if (chip8.GetPixelState(i + j*64)) {
                 graphics.SetPixel(i, j, true);
             }
         }

@@ -4,6 +4,7 @@ Input::Input() {
     for(int i = 0; i < 16; i++) {
         keys[i] = false;
     }
+    keyActive = false;
 }
 
 /**
@@ -21,4 +22,19 @@ bool Input::GetKeyState(int key) {
  */
 void Input::SetKeyState(int key, bool state) {
     keys[key] = state;
+}
+
+/**
+ * Checks if any key is currently active.
+ */
+bool Input::AnyKeyActive() {
+    return keyActive;
+}
+
+/**
+ * Sets the state of the keyActive variable.
+ * @param state the state to set keyActive to.
+ */
+void Input::SetKeyActive(bool state) {
+    keyActive = state;
 }
