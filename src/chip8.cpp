@@ -174,7 +174,6 @@ void Chip8::Tick() {
                     break;
                 case 0x000E: // 0x00EE: Returns from subroutine
                     cpu.pc = cpu.stack[cpu.sp];
-                    std::cout << "PC = " << cpu.pc << std::endl;
                     cpu.sp--;
                     cpu.pc += 2;
                     break;
@@ -188,7 +187,6 @@ void Chip8::Tick() {
         case 0x2000: // 0x2NNN: Calls subroutine at NNN
             cpu.sp++;
             cpu.stack[cpu.sp] = cpu.pc;
-            std::cout << "PC = " << cpu.pc << std::endl;
             cpu.pc = opcode & 0x0FFF;
             break;
         case 0x3000: // 0x3XNN: Skips the next instruction if VX equals NN
